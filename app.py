@@ -19,10 +19,9 @@ load_dotenv()
 # Get OpenAI API key
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 MODEL = "gpt-3.5-turbo"
-temperature = st.sidebar.slider("Set Temperature", 0.0, 1.0, 0.5, 0.01)  # Slider in the sidebar
 
 # Initialize model and embeddings based on model type
-model = ChatOpenAI(api_key=OPENAI_API_KEY, model=MODEL, temperature = temperature)
+model = ChatOpenAI(api_key=OPENAI_API_KEY, model=MODEL)
 embeddings = OpenAIEmbeddings()
 
 parser = StrOutputParser()
