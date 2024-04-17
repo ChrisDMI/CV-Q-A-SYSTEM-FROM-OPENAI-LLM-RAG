@@ -21,6 +21,7 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 MODEL = "gpt-3.5-turbo"
 
 # Initialize model and embeddings based on model type
+st.write(OPENAI_API_KEY)
 try:
     model = ChatOpenAI(api_key=OPENAI_API_KEY, model=MODEL)
     embeddings = OpenAIEmbeddings()
