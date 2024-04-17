@@ -21,8 +21,11 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 MODEL = "gpt-3.5-turbo"
 
 # Initialize model and embeddings based on model type
-model = ChatOpenAI(api_key=OPENAI_API_KEY, model=MODEL)
-embeddings = OpenAIEmbeddings()
+try:
+    model = ChatOpenAI(api_key=OPENAI_API_KEY, model=MODEL)
+    embeddings = OpenAIEmbeddings()
+except Exception as e:
+    print(f"Initialization failed: {e}")
 
 parser = StrOutputParser()
 
