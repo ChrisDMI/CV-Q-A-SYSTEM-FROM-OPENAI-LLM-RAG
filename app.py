@@ -18,6 +18,7 @@ load_dotenv()
 
 # Get OpenAI API key
 OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
+os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
 MODEL = "gpt-3.5-turbo"
 
 # Initialize model and embeddings based on model type
