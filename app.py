@@ -30,6 +30,9 @@ except Exception as e:
 
 parser = StrOutputParser()
 
+
+
+
 # Load and split the CV document
 loader = PyPDFLoader("CV_christian_segnou_2024_EN.pdf")
 pages = loader.load_and_split()
