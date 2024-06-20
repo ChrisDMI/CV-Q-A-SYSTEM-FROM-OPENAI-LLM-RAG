@@ -6,7 +6,7 @@ from langchain_openai.chat_models import ChatOpenAI
 from langchain_openai.embeddings import OpenAIEmbeddings
 
 from langchain_core.output_parsers import StrOutputParser
-from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.document_loaders.pdf import PyPDFLoader
 from langchain.prompts import PromptTemplate
 from langchain_community.vectorstores import DocArrayInMemorySearch
 from operator import itemgetter
