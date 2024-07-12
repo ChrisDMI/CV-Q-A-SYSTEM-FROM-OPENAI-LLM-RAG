@@ -68,4 +68,25 @@ except Exception as e:
     st.error(f"Failed to initialize vector store and retriever: {e}")
     retriever = None
 
-# Stream
+# Streamlit UI setup
+st.title('CV Question Answering System From OpenAI')
+
+user_question = st.text_input("Ask a question about the CV:")
+
+if user_question:
+    if retriever:
+        with st.spinner('Searching for the best answer...'):
+            # Define the processing chain
+            try:
+                chain = (
+                    { "context": itemgetter("question") | retriever, "question": itemgetter("question")}
+                    | prompt
+                    | model
+                    | parser
+                )
+                answer = chain.invoke({"question": user_question})
+                st.write(answer)
+            except Exception as e:
+                st.error(f"Error in processing chain: {e}")
+    else:
+        st.error("Unable to retrieve documents for question answering.")
