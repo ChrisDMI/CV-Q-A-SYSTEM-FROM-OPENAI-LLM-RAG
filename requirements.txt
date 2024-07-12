@@ -1,6 +1,7 @@
 python-dotenv
 langchain
 langchain_openai
+langchain_community
 pypdf2
 docarray
 pydantic==1.10.8
