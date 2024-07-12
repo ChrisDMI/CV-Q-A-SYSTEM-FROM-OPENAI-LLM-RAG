@@ -17,6 +17,9 @@ load_dotenv()
 
 # Get OpenAI API key
 OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
+if not OPENAI_API_KEY:
+    raise ValueError("No OpenAI API key found. Set the OPENAI_API_KEY environment variable.")
+
 os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
 MODEL = "gpt-3.5-turbo"
 
