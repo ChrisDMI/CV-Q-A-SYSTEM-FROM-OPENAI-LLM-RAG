@@ -43,10 +43,11 @@ parser = StrOutputParser()
 
 # Load and split the CV document
 try:
-    loader = PyPDFLoader("./CV_christian_segnou_2024_EN.pdf")
+    loader = PyPDFLoader("CV_christian_segnou_2024_EN.pdf")
     pages = loader.load_and_split()
 except Exception as e:
     st.error(f"Failed to load and split the PDF document: {e}")
+    pages = []  # Ensure pages is defined
 
 # Create the prompt template
 template = """
@@ -58,27 +59,13 @@ prompt = PromptTemplate.from_template(template)
 
 # Initialize the vector store and retriever
 try:
-    vectorstore = DocArrayInMemorySearch.from_documents(pages, embedding=embeddings)
-    retriever = vectorstore.as_retriever()
+    if pages:
+        vectorstore = DocArrayInMemorySearch.from_documents(pages, embedding=embeddings)
+        retriever = vectorstore.as_retriever()
+    else:
+        retriever = None
 except Exception as e:
     st.error(f"Failed to initialize vector store and retriever: {e}")
+    retriever = None
 
-# Streamlit UI setup
-st.title('CV Question Answering System From OpenAI')
-
-user_question = st.text_input("Ask a question about the CV:")
-
-if user_question:
-    with st.spinner('Searching for the best answer...'):
-        # Define the processing chain
-        try:
-            chain = (
-                { "context": itemgetter("question") | retriever, "question": itemgetter("question")}
-                | prompt
-                | model
-                | parser
-            )
-            answer = chain.invoke({"question": user_question})
-            st.write(answer)
-        except Exception as e:
-            st.error(f"Error in processing chain: {e}")
+# Stream
