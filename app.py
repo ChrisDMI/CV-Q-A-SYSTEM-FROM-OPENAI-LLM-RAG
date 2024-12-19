@@ -1,43 +1,95 @@
+import os
+import tempfile
 import streamlit as st
-from langchain_community.vectorstores import DocArrayInMemorySearch
-from langchain_core.output_parsers import StrOutputParser
-from modules.config import CV_PATH, OPENAI_API_KEY, MODEL_NAME
-from modules.utils import (
-    initialize_model_and_embeddings, load_cv_document, load_css
-)
-from modules.conversation import (
-    initialize_prompt_template, handle_user_input, display_conversation
-)
+from streamlit_chat import message
+from views import ChatPDF
 
-import warnings
-warnings.filterwarnings("ignore", category=UserWarning, message="`pydantic.error_wrappers:ValidationError` has been moved to `pydantic:ValidationError`.")
+st.set_page_config(page_title="ChatPDF")
 
 
-# Load and inject the CSS
-load_css("static/styles.css")
+def reset_session_state():
+    """Clear all conversation and reset session state."""
+    st.session_state["messages"] = []
+    st.session_state["user_input"] = ""
+    st.session_state["cv_ingested"] = False
+    st.session_state["assistant"].clear()
 
-# Streamlit UI setup
-st.title('CV Question Answering System')
 
-# Initialize session state for conversation history
-if 'conversation' not in st.session_state:
-    st.session_state.conversation = []
+def display_messages():
+    st.subheader("Chat")
+    for i, (msg, is_user) in enumerate(st.session_state["messages"]):
+        message(msg, is_user=is_user, key=str(i))
+    st.session_state["thinking_spinner"] = st.empty()
 
-# Initialize model and embeddings
-model, embeddings = initialize_model_and_embeddings(OPENAI_API_KEY, MODEL_NAME)
 
-# Load and split the CV document
-pages = load_cv_document(CV_PATH)
+def process_input():
+    user_text = st.session_state["user_input"].strip()
+    if user_text:
+        with st.session_state["thinking_spinner"], st.spinner(f"Thinking"):
+            agent_text = st.session_state["assistant"].ask(user_text)
 
-# Create the prompt template
-prompt = initialize_prompt_template()
+        st.session_state["messages"].append((user_text, True))
+        st.session_state["messages"].append((agent_text, False))
+        
+        # Clear the input field
+        st.session_state["user_input"] = ""
 
-# Initialize the vector store and retriever
-vectorstore = DocArrayInMemorySearch.from_documents(pages, embedding=embeddings)
-retriever = vectorstore.as_retriever()
 
-# Display the conversation
-display_conversation()
+def read_and_save_file():
+    reset_session_state()
+    for file in st.session_state["file_uploader"]:
+        with tempfile.NamedTemporaryFile(delete=False) as tf:
+            tf.write(file.getbuffer())
+            file_path = tf.name
 
-# User input section
-st.text_input("Ask a question about the CV:", key="input", placeholder="Type your question here...", on_change=lambda: handle_user_input(retriever, prompt, model, StrOutputParser()))
+        with st.session_state["ingestion_spinner"], st.spinner(f"Ingesting {file.name}"):
+            st.session_state["assistant"].ingest(file_path)
+        os.remove(file_path)
+
+
+def page():
+    if len(st.session_state) == 0:
+        st.session_state["messages"] = []
+        st.session_state["assistant"] = ChatPDF()
+        st.session_state["cv_ingested"] = False
+
+    st.header("ChatPDF")
+
+    # Let the user choose between CV or PDF
+    choice = st.radio(
+        "Choose your option:",
+        options=["Ask about my CV", "Upload a PDF to ask questions"],
+        key="user_choice",
+        on_change=reset_session_state  # Reset conversation when option changes
+    )
+
+    if choice == "Ask about my CV":
+        st.subheader("Ask about my CV")
+        if not st.session_state["cv_ingested"]:
+            try:
+                st.session_state["assistant"].ingest("CV-christian-segnou-2025.pdf")  # Put with your CV path
+                st.session_state["cv_ingested"] = True
+                st.success("CV successfully ingested. You can now ask questions!")
+            except Exception as e:
+                st.error(f"Error ingesting CV: {e}")
+        else:
+            st.info("CV is already ingested. You can ask questions below.")
+
+    elif choice == "Upload a PDF to ask questions":
+        st.subheader("Upload a document")
+        st.file_uploader(
+            "Upload document",
+            type=["pdf"],
+            key="file_uploader",
+            on_change=read_and_save_file,
+            label_visibility="collapsed",
+            accept_multiple_files=True,
+        )
+
+    st.session_state["ingestion_spinner"] = st.empty()
+    display_messages()
+    st.text_input("Message", key="user_input", on_change=process_input)
+
+
+if __name__ == "__main__":
+    page()
