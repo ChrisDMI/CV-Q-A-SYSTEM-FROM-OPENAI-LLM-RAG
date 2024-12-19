@@ -29,7 +29,7 @@ class ChatPDF:
         self.prompt = PromptTemplate.from_template(
             """
             You are an assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question.
-              If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise.
+              If you don't know the answer (case where the question is not related to the context), just say that you don't know. Use three sentences maximum and keep the answer concise.
               \nQuestion: {question} 
               \nContext: {context} 
               \nAnswer:
