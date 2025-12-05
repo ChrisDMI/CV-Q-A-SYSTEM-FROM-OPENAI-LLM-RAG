@@ -67,7 +67,7 @@ def page():
         st.subheader("Ask about my CV")
         if not st.session_state["cv_ingested"]:
             try:
-                st.session_state["assistant"].ingest("CV-Christian-Segnou-2025.pdf")  # Put with your CV path
+                st.session_state["assistant"].ingest("CV Christian Segnou - Oct-2025.pdf")  # Put with your CV path
                 st.session_state["cv_ingested"] = True
                 st.success("CV successfully ingested. You can now ask questions!")
             except Exception as e:
